@@ -91,3 +91,7 @@ my_settings.txt
 borrar/*
 
 */ExecMean.txt
+
+# VSLAM-LAB
+install_orbslam3.txt
+install_orbslam3-dev.txt
