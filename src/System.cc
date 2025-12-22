@@ -38,10 +38,11 @@ namespace ORB_SLAM3
 
 Verbose::eLevel Verbose::th = Verbose::VERBOSITY_NORMAL;
 
-System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer, const int initFr, const string &strSequence):
-    mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbResetActiveMap(false),
-    mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mbShutDown(false)
+System::System(const string &strVocFile, const string &strCalibrationFile, const string &strSettingsFile,
+               const eSensor sensor, const bool bUseViewer, const int initFr, const string &strSequence):
+               mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)),
+               mbReset(false), mbResetActiveMap(false), mbActivateLocalizationMode(false),
+               mbDeactivateLocalizationMode(false), mbShutDown(false)
 {
     // Output welcome message
     cout << endl <<
@@ -76,7 +77,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     cv::FileNode node = fsSettings["File.version"];
     if(!node.empty() && node.isString() && node.string() == "1.0"){
-        settings_ = new Settings(strSettingsFile,mSensor);
+        settings_ = new Settings(strCalibrationFile, strSettingsFile, mSensor);
 
         mStrLoadAtlasFromFile = settings_->atlasLoadFile();
         mStrSaveAtlasToFile = settings_->atlasSaveFile();
@@ -188,8 +189,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     cout << "Seq. Name: " << strSequence << endl;
-    mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                             mpAtlas, mpKeyFrameDatabase, strSettingsFile, mSensor, settings_, strSequence);
+    mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer, mpAtlas, mpKeyFrameDatabase, 
+                             mSensor, settings_, strSequence);
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(this, mpAtlas, mSensor==MONOCULAR || mSensor==IMU_MONOCULAR,
@@ -229,7 +230,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     if(bUseViewer)
     //if(false) // TODO
     {
-        mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile,settings_);
+        mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strCalibrationFile, strSettingsFile, settings_);
         mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
         mpLoopCloser->mpViewer = mpViewer;
@@ -564,6 +565,48 @@ void System::Shutdown()
 bool System::isShutDown() {
     unique_lock<mutex> lock(mMutexReset);
     return mbShutDown;
+}
+
+void System::SaveKeyFrameTrajectoryVSLAMLAB(const string &filename)
+{
+    cout << endl << "Saving keyframe trajectory to " << filename << " ..." << endl;
+
+    vector<KeyFrame*> vpKFs = mpAtlas->GetAllKeyFrames();
+    sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
+
+    // Transform all keyframes so that the first keyframe is at the origin.
+    // After a loop closure the first keyframe might not be at the origin.
+    std::ofstream f(filename.c_str());
+    f.imbue(std::locale::classic());
+
+    // CSV header
+    f << "timestamp,tx,ty,tz,qx,qy,qz,qw\n";
+
+    for(size_t i=0; i<vpKFs.size(); i++)
+    {
+        KeyFrame* pKF = vpKFs[i];
+
+       // pKF->SetPose(pKF->GetPose()*Two);
+
+        if(pKF->isBad())
+            continue;
+
+        Sophus::SE3f Twc = pKF->GetPoseInverse();
+        Eigen::Quaternionf q = Twc.unit_quaternion();
+        Eigen::Vector3f t = Twc.translation();
+        f << std::fixed << std::setprecision(9) << pKF->mTimeStamp << ','
+          << std::scientific << std::setprecision(7)
+          << static_cast<double>(t(0)) << ','
+          << static_cast<double>(t(1)) << ','
+          << static_cast<double>(t(2)) << ','
+          << static_cast<double>(q.x()) << ','
+          << static_cast<double>(q.y()) << ','
+          << static_cast<double>(q.z()) << ','
+          << static_cast<double>(q.w()) << '\n';
+
+    }
+
+    f.close();
 }
 
 void System::SaveTrajectoryTUM(const string &filename)

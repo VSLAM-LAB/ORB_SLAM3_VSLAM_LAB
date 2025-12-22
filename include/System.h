@@ -102,7 +102,8 @@ public:
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // Initialize the SLAM system. It launches the Local Mapping, Loop Closing and Viewer threads.
-    System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor, const bool bUseViewer = true, const int initFr = 0, const string &strSequence = std::string());
+    System(const string &strVocFile, const string &strCalibrationFile, const string &strSettingsFile,
+           const eSensor sensor, const bool bUseViewer = true, const int initFr = 0, const string &strSequence = std::string());
 
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
@@ -157,6 +158,12 @@ public:
 
     void SaveTrajectoryEuRoC(const string &filename, Map* pMap);
     void SaveKeyFrameTrajectoryEuRoC(const string &filename, Map* pMap);
+    
+    // Save keyframe poses in the VSLAM-LAB dataset format.
+    // This method works for all sensor input.
+    // Call first Shutdown()
+    // See format details at: https://github.com/VSLAM-LAB/VSLAM-LAB
+    void SaveKeyFrameTrajectoryVSLAMLAB(const string &filename);
 
     // Save data used for initialization debug
     void SaveDebugData(const int &iniIdx);

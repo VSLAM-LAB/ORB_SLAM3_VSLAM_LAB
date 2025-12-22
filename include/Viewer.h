@@ -27,6 +27,7 @@
 #include "Settings.h"
 
 #include <mutex>
+#include <yaml-cpp/yaml.h>
 
 namespace ORB_SLAM3
 {
@@ -41,7 +42,8 @@ class Viewer
 {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, const string &strSettingPath, Settings* settings);
+    Viewer(System* pSystem, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Tracking *pTracking, 
+        const string &strCalibrationPath, const string &strSettingPath, Settings* settings);
 
     void newParameterLoader(Settings* settings);
 
@@ -66,7 +68,7 @@ public:
     bool both;
 private:
 
-    bool ParseViewerParamFile(cv::FileStorage &fSettings);
+    bool ParseViewerParamFile(cv::FileStorage &fSettings, const YAML::Node& calibration, std::string cam_name="rgb0");
 
     bool Stop();
 

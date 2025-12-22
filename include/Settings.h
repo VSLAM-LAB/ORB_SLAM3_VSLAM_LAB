@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <yaml-cpp/yaml.h>
 
 namespace ORB_SLAM3 {
 
@@ -55,7 +56,7 @@ namespace ORB_SLAM3 {
         /*
          * Constructor from file
          */
-        Settings(const std::string &configFile, const int& sensor);
+        Settings(const std::string &strCalibrationPath, const std::string &strSettingPath, const int& sensor);
 
         /*
          * Ostream operator overloading to dump settings to the terminal
@@ -144,11 +145,11 @@ namespace ORB_SLAM3 {
             }
         }
 
-        void readCamera1(cv::FileStorage& fSettings);
-        void readCamera2(cv::FileStorage& fSettings);
-        void readImageInfo(cv::FileStorage& fSettings);
-        void readIMU(cv::FileStorage& fSettings);
-        void readRGBD(cv::FileStorage& fSettings);
+        void readCamera1(cv::FileStorage &fSettings, const YAML::Node& cam);
+        void readCamera2(cv::FileStorage& fSettings, const YAML::Node& cam0, const YAML::Node& cam1);
+        void readImageInfo(const YAML::Node& calibration, const std::string& cam_name);
+        void readIMU(cv::FileStorage& fSettings, const YAML::Node& imu, const YAML::Node& cam);
+        void readRGBD(cv::FileStorage& fSettings, const YAML::Node& calibration, const std::string& cam_name);
         void readORB(cv::FileStorage& fSettings);
         void readViewer(cv::FileStorage& fSettings);
         void readLoadAndSave(cv::FileStorage& fSettings);

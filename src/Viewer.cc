@@ -25,32 +25,36 @@
 namespace ORB_SLAM3
 {
 
-Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, Settings* settings):
+Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, 
+    const string &strCalibrationPath, const string &strSettingPath, Settings* settings):
     both(false), mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
     mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false)
 {
-    if(settings){
+    // if(settings){
         newParameterLoader(settings);
-    }
-    else{
+    // }
+    // else{
 
-        cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
+    //     YAML::Node calibration = YAML::LoadFile(strCalibrationPath);
 
-        bool is_correct = ParseViewerParamFile(fSettings);
+    //     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
+    //     std::string cam_name = "rgb0";
 
-        if(!is_correct)
-        {
-            std::cerr << "**ERROR in the config file, the format is not correct**" << std::endl;
-            try
-            {
-                throw -1;
-            }
-            catch(exception &e)
-            {
+    //     bool is_correct = ParseViewerParamFile(fSettings, calibration, cam_name);
 
-            }
-        }
-    }
+    //     if(!is_correct)
+    //     {
+    //         std::cerr << "**ERROR in the config file, the format is not correct**" << std::endl;
+    //         try
+    //         {
+    //             throw -1;
+    //         }
+    //         catch(exception &e)
+    //         {
+
+    //         }
+    //     }
+    // }
 
     mbStopTrack = false;
 }
@@ -74,38 +78,30 @@ void Viewer::newParameterLoader(Settings *settings) {
     mViewpointF = settings->viewPointF();
 }
 
-bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings)
+bool Viewer::ParseViewerParamFile(cv::FileStorage &fSettings, const YAML::Node& calibration, std::string cam_name)
 {
+
+    const YAML::Node& cameras = calibration["cameras"];
+    YAML::Node cam;
+    for (int i{0}; i < cameras.size(); ++i){
+        if (cameras[i]["cam_name"].as<std::string>() == cam_name){
+            cam = cameras[i];
+            break;
+        }
+    }
+
     bool b_miss_params = false;
     mImageViewerScale = 1.f;
 
-    float fps = fSettings["Camera.fps"];
+    float fps = cam["fps"].as<float>();
     if(fps<1)
         fps=30;
     mT = 1e3/fps;
 
-    cv::FileNode node = fSettings["Camera.width"];
-    if(!node.empty())
-    {
-        mImageWidth = node.real();
-    }
-    else
-    {
-        std::cerr << "*Camera.width parameter doesn't exist or is not a real number*" << std::endl;
-        b_miss_params = true;
-    }
+    mImageWidth = cam["image_dimension"][0].as<int>();
+    mImageHeight = cam["image_dimension"][1].as<int>();
 
-    node = fSettings["Camera.height"];
-    if(!node.empty())
-    {
-        mImageHeight = node.real();
-    }
-    else
-    {
-        std::cerr << "*Camera.height parameter doesn't exist or is not a real number*" << std::endl;
-        b_miss_params = true;
-    }
-
+    cv::FileNode node;
     node = fSettings["Viewer.imageViewScale"];
     if(!node.empty())
     {
