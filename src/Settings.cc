@@ -357,16 +357,16 @@ namespace ORB_SLAM3 {
         }
 
         //Load stereo extrinsic calibration
-        std::vector<float> T_SC_data_0 = cam0["T_SC"].as<std::vector<float>>();
-        std::vector<float> T_SC_data_1 = cam1["T_SC"].as<std::vector<float>>();
+        std::vector<float> T_BS_data_0 = cam0["T_BS"].as<std::vector<float>>();
+        std::vector<float> T_BS_data_1 = cam1["T_BS"].as<std::vector<float>>();
 
-        cv::Mat T_SC_0(4, 4, CV_32F);
-        cv::Mat T_SC_1(4, 4, CV_32F);
+        cv::Mat T_BS_0(4, 4, CV_32F);
+        cv::Mat T_BS_1(4, 4, CV_32F);
 
-        std::copy(T_SC_data_0.begin(), T_SC_data_0.end(), (float*)T_SC_0.data);
-        std::copy(T_SC_data_1.begin(), T_SC_data_1.end(), (float*)T_SC_1.data);
+        std::copy(T_BS_data_0.begin(), T_BS_data_0.end(), (float*)T_BS_0.data);
+        std::copy(T_BS_data_1.begin(), T_BS_data_1.end(), (float*)T_BS_1.data);
 
-        cv::Mat T = T_SC_0.inv() * T_SC_1;
+        cv::Mat T = T_BS_0.inv() * T_BS_1;
         Tlr_ = Converter::toSophus(T);    
         b_ = Tlr_.translation().norm();
         bf_ = b_ * calibration1_->getParameter(0);
@@ -403,16 +403,16 @@ namespace ORB_SLAM3 {
         accWalk_ = imu["sigma_aw_c"].as<float>();
         imuFrequency_ = imu["fps"].as<float>();
         
-        std::vector<float> T_SC_cam_data = cam["T_SC"].as<std::vector<float>>();
-        std::vector<float> T_SC_imu_data = imu["T_SC"].as<std::vector<float>>();
+        std::vector<float> T_BS_cam_data = cam["T_BS"].as<std::vector<float>>();
+        std::vector<float> T_BS_imu_data = imu["T_BS"].as<std::vector<float>>();
 
-        cv::Mat T_SC_cam(4, 4, CV_32F);
-        cv::Mat T_SC_imu(4, 4, CV_32F);
+        cv::Mat T_BS_cam(4, 4, CV_32F);
+        cv::Mat T_BS_imu(4, 4, CV_32F);
 
-        std::copy(T_SC_cam_data.begin(), T_SC_cam_data.end(), (float*)T_SC_cam.data);
-        std::copy(T_SC_imu_data.begin(), T_SC_imu_data.end(), (float*)T_SC_imu.data);
+        std::copy(T_BS_cam_data.begin(), T_BS_cam_data.end(), (float*)T_BS_cam.data);
+        std::copy(T_BS_imu_data.begin(), T_BS_imu_data.end(), (float*)T_BS_imu.data);
 
-        cv::Mat Tbc = T_SC_imu.inv() * T_SC_cam;
+        cv::Mat Tbc = T_BS_imu.inv() * T_BS_cam;
         Tbc_ = Converter::toSophus(Tbc);
 
         bool found;
@@ -506,6 +506,10 @@ namespace ORB_SLAM3 {
                           R12, t12,
                           R_r1_u1,R_r2_u2,P1,P2,Q,
                           cv::CALIB_ZERO_DISPARITY,-1,newImSize_);
+
+        std::cout << "Stereo Rectification P1: " << P1 << std::endl;
+        std::cout << "Stereo Rectification P2: " << P2 << std::endl;
+
         cv::initUndistortRectifyMap(K1, camera1DistortionCoef(), R_r1_u1, P1.rowRange(0, 3).colRange(0, 3),
                                     newImSize_, CV_32F, M1l_, M2l_);
         cv::initUndistortRectifyMap(K2, camera2DistortionCoef(), R_r2_u2, P2.rowRange(0, 3).colRange(0, 3),
