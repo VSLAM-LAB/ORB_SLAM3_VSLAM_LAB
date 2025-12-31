@@ -227,9 +227,10 @@ namespace ORB_SLAM3 {
         vector<float> vCalibration;
 
         bool hasDistortion = (cam["distortion_type"] && cam["distortion_coefficients"]);
-        std::string dist_type = cam["distortion_type"].as<std::string>();
+        std::string dist_type{};
 
         if (hasDistortion) {
+            dist_type = cam["distortion_type"].as<std::string>();
             std::vector<float> dist_coeffs_vec = cam["distortion_coefficients"].as<std::vector<float>>(); 
             validateDistortionModel(dist_type, dist_coeffs_vec);
         } 
