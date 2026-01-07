@@ -148,7 +148,7 @@ namespace ORB_SLAM3 {
         std::string cam_name;
         if((sensor_ == System::MONOCULAR) || (sensor_ == System::IMU_MONOCULAR))
             cam_name = settings["cam_mono"].as<std::string>();
-        if(sensor_ == System::RGBD)
+        if((sensor_ == System::RGBD) || (sensor_ == System::IMU_RGBD))
             cam_name = settings["cam_rgbd"].as<std::string>();
         if((sensor_ == System::STEREO)|| (sensor_ == System::IMU_STEREO))
             cam_name = settings["cam_stereo"].as<std::vector<std::string>>()[0];

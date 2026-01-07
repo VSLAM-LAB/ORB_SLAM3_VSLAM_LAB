@@ -120,6 +120,9 @@ target_link_libraries(vslamlab_orbslam3_mono_vi PRIVATE ${PROJECT_NAME})
 add_executable(vslamlab_orbslam3_stereo_vi Examples/Stereo-Inertial/vslamlab_orbslam3_stereo_vi.cpp)
 target_link_libraries(vslamlab_orbslam3_stereo_vi PRIVATE ${PROJECT_NAME})
 
+add_executable(vslamlab_orbslam3_rgbd_vi Examples/RGB-D-Inertial/vslamlab_orbslam3_rgbd_vi.cpp)
+target_link_libraries(vslamlab_orbslam3_rgbd_vi PRIVATE ${PROJECT_NAME})
+
 # Install targets and headers
 install(TARGETS ${PROJECT_NAME} vslamlab_orbslam3_mono
         RUNTIME DESTINATION bin
@@ -142,6 +145,11 @@ install(TARGETS ${PROJECT_NAME} vslamlab_orbslam3_mono_vi
         ARCHIVE DESTINATION lib)
 
 install(TARGETS ${PROJECT_NAME} vslamlab_orbslam3_stereo_vi
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+install(TARGETS ${PROJECT_NAME} vslamlab_orbslam3_rgbd_vi
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
