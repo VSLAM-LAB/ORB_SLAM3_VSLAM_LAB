@@ -295,8 +295,8 @@ namespace ORB_SLAM3 {
 
             bool found{};
             if(sensor_ == System::STEREO || sensor_ == System::IMU_STEREO){
-                int colBegin = readParameter<int>(fSettings,"Camera1.overlappingBegin",found);
-                int colEnd = readParameter<int>(fSettings,"Camera1.overlappingEnd",found);
+                int colBegin = 0; // readParameter<int>(fSettings,"Camera1.overlappingBegin",found);
+                int colEnd = cam["image_dimension"][0].as<int>() - 1; // readParameter<int>(fSettings,"Camera1.overlappingEnd",found);
                 vector<int> vOverlapping = {colBegin, colEnd};
 
                 static_cast<KannalaBrandt8*>(calibration1_)->mvLappingArea = vOverlapping;
@@ -355,8 +355,8 @@ namespace ORB_SLAM3 {
             calibration2_ = new KannalaBrandt8(vCalibration);
             originalCalib2_ = new KannalaBrandt8(vCalibration);
 
-            int colBegin = readParameter<int>(fSettings,"Camera2.overlappingBegin",found);
-            int colEnd = readParameter<int>(fSettings,"Camera2.overlappingEnd",found);
+            int colBegin = 0; //readParameter<int>(fSettings,"Camera2.overlappingBegin",found);
+            int colEnd = cam1["image_dimension"][0].as<int>() - 1; //readParameter<int>(fSettings,"Camera2.overlappingEnd",found);
             vector<int> vOverlapping = {colBegin, colEnd};
 
             static_cast<KannalaBrandt8*>(calibration2_)->mvLappingArea = vOverlapping;
